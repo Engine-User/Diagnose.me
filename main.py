@@ -11,8 +11,6 @@ from langchain_groq import ChatGroq
 import PyPDF2
 import docx2txt
 from PIL import Image
-import networkx as nx
-import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 
 # Load environment variables
@@ -29,26 +27,11 @@ llm = ChatGroq(
     temperature=0.7
 )
 
-# Initialize Disease Knowledge Graph
-disease_kg = nx.Graph()
-
 # Initialize Medication Management
 medications = {}
 
 # Initialize Mental Health Support
 mental_health_scores = {}
-
-# Disease Knowledge Graph functions
-def update_disease_kg(symptom, disease, treatment):
-    disease_kg.add_edge(symptom, disease)
-    disease_kg.add_edge(disease, treatment)
-
-def visualize_kg():
-    plt.figure(figsize=(12, 8))
-    pos = nx.spring_layout(disease_kg)
-    nx.draw(disease_kg, pos, with_labels=True, node_color='lightblue', node_size=3000, font_size=10, font_weight='bold')
-    plt.title("Disease Knowledge Graph")
-    return plt
 
 # Medication Management functions
 def add_medication(name, dosage, frequency):
@@ -259,7 +242,7 @@ if contact_button:
 st.markdown('<h2>Patient Information</h2>', unsafe_allow_html=True)
 gender = st.selectbox('Select Gender', ('Male', 'Female', 'Other'))
 age = st.number_input('Enter Age', min_value=0, max_value=120, value=25)
-symptoms = st.text_area('Enter Symptoms', '(eg:- Fever, Cold etc))')
+symptoms = st.text_area('Enter Symptoms', '(eg:- Fever, Cold etc)')
 medical_history = st.text_area('Enter Medical History', 'e.g:- diabetes, hypertension, or any other conditions from your past')
 
 # File upload
@@ -368,9 +351,6 @@ def format_result(crew_result):
     diagnosis = crew_result.tasks_output[0].raw
     treatment = crew_result.tasks_output[1].raw
     
-    # Update Disease Knowledge Graph
-    update_disease_kg(symptoms, diagnosis, treatment)
-    
     formatted_result = f"""
 # Diagnosis and Treatment Plan
 
@@ -393,17 +373,13 @@ def format_result(crew_result):
 
 # Execution button for generating diagnosis and treatment plan
 if st.button("Get Diagnosis and Treatment Plan"):
-    with st.spinner('Generating recommendations...'):
+    with st.spinner('Diagnosing...'):
         try:
             result = crew.kickoff()
             
             formatted_result = format_result(result)
             
             st.markdown(formatted_result)
-            
-            # Visualize Disease Knowledge Graph
-            kg_fig = visualize_kg()
-            st.pyplot(kg_fig)
             
             docx_file = generate_docx(formatted_result)
             download_link = get_download_link(docx_file, "diagnosis_and_treatment_plan.docx")
