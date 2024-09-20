@@ -29,7 +29,7 @@ if not groq_api_key or not serper_api_key:
 try:
     llm = ChatGroq(
         api_key=groq_api_key,
-        model_name='mixtral-8x7b-32768',  # Updated model name
+        model_name='llama2-70b-4096',  # Updated to a valid Groq model
         temperature=0.7
     )
 except Exception as e:
@@ -362,17 +362,19 @@ crew = Crew(
 
 # Function to extract and format the result
 def format_result(crew_result):
-    diagnosis = crew_result.tasks_output[0].raw
-    treatment = crew_result.tasks_output[1].raw
+    if isinstance(crew_result, str):
+        # If the result is a string, use it directly
+        diagnosis_and_treatment = crew_result
+    else:
+        # If it's an object with tasks_output attribute
+        diagnosis = crew_result.tasks_output[0].raw if hasattr(crew_result, 'tasks_output') else "Diagnosis not available"
+        treatment = crew_result.tasks_output[1].raw if hasattr(crew_result, 'tasks_output') and len(crew_result.tasks_output) > 1 else "Treatment plan not available"
+        diagnosis_and_treatment = f"{diagnosis}\n\n{treatment}"
     
     formatted_result = f"""
 # Diagnosis and Treatment Plan
 
-## Preliminary Diagnosis
-{diagnosis}
-
-## Treatment Plan
-{treatment}
+{diagnosis_and_treatment}
 
 ## Medication Reminders
 {"".join(get_medication_reminders())}
@@ -401,7 +403,4 @@ if st.button("Get Diagnosis and Treatment Plan"):
 
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
-            if 'result' in locals():
-                st.write("Debug Info:", result)
-            else:
-                st.write("Debug Info: Result not available due to error.")
+            st.write("Debug Info:", result)
