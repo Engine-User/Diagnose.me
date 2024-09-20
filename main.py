@@ -29,7 +29,7 @@ if not groq_api_key or not serper_api_key:
 try:
     llm = ChatGroq(
         api_key=groq_api_key,
-        model_name='llama-3.1-70b-versatile',  # Updated to a valid Groq model
+        model_name='groq/llama-3.1-70b-versatile',  # Updated to a valid Groq model
         temperature=0.7
     )
 except Exception as e:
@@ -82,10 +82,25 @@ def mental_health_screening(answers):
         return "High risk", score
 
 def update_mood_tracker(mood):
-    mental_health_scores[datetime.now().strftime("%Y-%m-%d")] = mood
+    today = datetime.now().strftime("%Y-%m-%d")
+    mood_message = {
+        "Very Bad": "You're having a really tough day. Remember, it's okay to not be okay.",
+        "Bad": "Things are a bit rough today. Take some time for self-care.",
+        "Neutral": "You're feeling balanced today. That's okay too!",
+        "Good": "You're having a good day! Enjoy the positive feelings.",
+        "Very Good": "You're feeling great today! Celebrate the good moments."
+    }
+    mental_health_scores[today] = mood_message[mood]
+    # Ensure we only keep the last 7 days of data
+    if len(mental_health_scores) > 7:
+        oldest_date = min(mental_health_scores.keys())
+        del mental_health_scores[oldest_date]
 
 def get_mood_trend():
-    return list(mental_health_scores.values())[-7:]  # Last 7 days
+    # Sort the mood data by date
+    sorted_moods = sorted(mental_health_scores.items(), key=lambda x: x[0], reverse=True)
+    # Return the moods with their dates
+    return [f"{date}: {mood}" for date, mood in sorted_moods]
 
 # Function to generate a Word document from the result
 def generate_docx(result):
@@ -304,7 +319,7 @@ st.write("Please answer the following questions on a scale of 0-5 (0: Not at all
 q1 = st.slider("Interest or pleasure in doing things", 0, 5, 0)
 q2 = st.slider("Feelings of despair, depression, or hopelessness", 0, 5, 0)
 q3 = st.slider("Trouble falling or staying asleep, or sleeping too much", 0, 5, 0)
-q4 = st.slider("Feelings of tired or having little energy", 0, 5, 0)
+q4 = st.slider("Feelings of tiredness or having little energy", 0, 5, 0)
 q5 = st.slider("Poor appetite or overeating", 0, 5, 0)
 
 if st.button("Submit Mental Health Screening"):
@@ -316,7 +331,7 @@ if st.button("Submit Mental Health Screening"):
 mood = st.selectbox("How are you feeling today?", ["Very Bad", "Bad", "Neutral", "Good", "Very Good"])
 if st.button("Update Mood"):
     update_mood_tracker(mood)
-    st.success("Mood updated successfully.")
+    st.success(f"Mood updated successfully. {mental_health_scores[datetime.now().strftime('%Y-%m-%d')]}")
 
 # Define the diagnostician agent
 diagnostician = Agent(
@@ -371,16 +386,30 @@ def format_result(crew_result):
         treatment = crew_result.tasks_output[1].raw if hasattr(crew_result, 'tasks_output') and len(crew_result.tasks_output) > 1 else "Treatment plan not available"
         diagnosis_and_treatment = f"{diagnosis}\n\n{treatment}"
     
+    # Get medication reminders
+    med_reminders = get_medication_reminders()
+    if med_reminders:
+        medication_text = "\n".join(med_reminders)
+    else:
+        medication_text = "No medication reminders at this time."
+    
+    # Get mental health trend
+    mood_trend = get_mood_trend()
+    if mood_trend:
+        mood_text = "\n".join(mood_trend)
+    else:
+        mood_text = "No mood data available for the last 7 days. Start tracking your mood to see trends!"
+    
     formatted_result = f"""
 # Diagnosis and Treatment Plan
 
 {diagnosis_and_treatment}
 
 ## Medication Reminders
-{"".join(get_medication_reminders())}
+{medication_text}
 
 ## Mental Health Trend (Last 7 days)
-{get_mood_trend()}
+{mood_text}
 
 ---
 *Note: This is just the start, if you are concerned about the diagnosis or treatment plan, please consult with a healthcare professional for accurate diagnosis and treatment.*
