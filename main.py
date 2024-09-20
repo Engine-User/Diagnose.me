@@ -26,11 +26,15 @@ if not groq_api_key or not serper_api_key:
     st.stop()
 
 # Initialize ChatGroq
-llm = ChatGroq(
-    api_key=groq_api_key,
-    model_name='groq/llama3-8b-8192',
-    temperature=0.7
-)
+try:
+    llm = ChatGroq(
+        api_key=groq_api_key,
+        model_name='llama2-70b-4096',  # Updated model name
+        temperature=0.7
+    )
+except Exception as e:
+    st.error(f"Error initializing ChatGroq: {str(e)}")
+    st.stop()
 
 # Initialize search tool
 search_tool = None
@@ -300,7 +304,7 @@ st.write("Please answer the following questions on a scale of 0-5 (0: Not at all
 q1 = st.slider("Interest or pleasure in doing things", 0, 5, 0)
 q2 = st.slider("Feelings of despair, depression, or hopelessness", 0, 5, 0)
 q3 = st.slider("Trouble falling or staying asleep, or sleeping too much", 0, 5, 0)
-q4 = st.slider("Feeling tired or having little energy", 0, 5, 0)
+q4 = st.slider("Feelings of tired or having little energy", 0, 5, 0)
 q5 = st.slider("Poor appetite or overeating", 0, 5, 0)
 
 if st.button("Submit Mental Health Screening"):
@@ -397,4 +401,7 @@ if st.button("Get Diagnosis and Treatment Plan"):
 
         except Exception as e:
             st.error(f"An error occurred: {str(e)}")
-            st.write("Debug Info:", result)
+            if 'result' in locals():
+                st.write("Debug Info:", result)
+            else:
+                st.write("Debug Info: Result not available due to error.")
