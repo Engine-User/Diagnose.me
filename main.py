@@ -33,6 +33,7 @@ llm = ChatGroq(
 )
 
 # Initialize search tool
+search_tool = None
 try:
     search = GoogleSerperAPIWrapper(serper_api_key=serper_api_key)
     search_tool = Tool(
@@ -320,7 +321,7 @@ diagnostician = Agent(
     backstory="Experienced in diagnosing conditions based on patient-reported symptoms and medical history. You are the best medical professional in the world and it is your responsiblity to provide the best possible diagnosis and treatment plan.",
     verbose=True,
     allow_delegation=False,
-    tools=[search_tool],
+    tools=[search_tool] if search_tool else [],
     llm=llm
 )
 
@@ -331,7 +332,7 @@ treatment_advisor = Agent(
     backstory="Specializes in creating treatment plans tailored to patient needs. You are the best treatment advisor and known for curated, personalized treatment plans, because you deal with the nuances of every symptom and medical history.",
     verbose=True,
     allow_delegation=False,
-    tools=[search_tool],
+    tools=[search_tool] if search_tool else [],
     llm=llm
 )
 
