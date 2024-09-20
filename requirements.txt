@@ -18,3 +18,4 @@ chromadb
 embedchain
 pysqlite3
 pip
+sqlite3
