@@ -13,4 +13,4 @@ docx2txt
 Pillow
 networkx
 matplotlib
-
+chromadb
