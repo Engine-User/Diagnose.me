@@ -7,7 +7,7 @@ langchain-core
 langchain-groq
 python-docx
 pydantic
-PyPDF2=
+PyPDF2
 docx2txt
 Pillow
 google-search-results
