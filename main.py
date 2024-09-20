@@ -29,7 +29,7 @@ if not groq_api_key or not serper_api_key:
 try:
     llm = ChatGroq(
         api_key=groq_api_key,
-        model_name='llama2-70b-4096',  # Updated model name
+        model_name='groq/llama2-70b-4096',  # Updated model name
         temperature=0.7
     )
 except Exception as e:
