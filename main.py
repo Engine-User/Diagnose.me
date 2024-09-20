@@ -7,11 +7,11 @@ from dotenv import load_dotenv
 from docx import Document
 from io import BytesIO
 import base64
+from datetime import datetime, timedelta
 from langchain_groq import ChatGroq
 import PyPDF2
 import docx2txt
 from PIL import Image
-from datetime import datetime, timedelta
 
 # Load environment variables
 load_dotenv()
@@ -20,12 +20,29 @@ load_dotenv()
 groq_api_key = os.getenv("GROQ_API_KEY")
 serper_api_key = os.getenv("SERPER_API_KEY")
 
+# Check if the API keys are set
+if not groq_api_key or not serper_api_key:
+    st.error("Please set the GROQ_API_KEY and SERPER_API_KEY in your .env file.")
+    st.stop()
+
 # Initialize ChatGroq
 llm = ChatGroq(
     api_key=groq_api_key,
     model_name='groq/llama3-8b-8192',
     temperature=0.7
 )
+
+# Initialize search tool
+try:
+    search = GoogleSerperAPIWrapper(serper_api_key=serper_api_key)
+    search_tool = Tool(
+        name="Search",
+        func=search.run,
+        description="useful for when you need to answer questions about current events; need to gather information about the user inputs. Attend and search main key words and phrases"
+    )
+except Exception as e:
+    st.error(f"Error initializing search tool: {str(e)}")
+    st.stop()
 
 # Initialize Medication Management
 medications = {}
@@ -295,14 +312,6 @@ mood = st.selectbox("How are you feeling today?", ["Very Bad", "Bad", "Neutral",
 if st.button("Update Mood"):
     update_mood_tracker(mood)
     st.success("Mood updated successfully.")
-
-# Initialize search tool
-search = GoogleSerperAPIWrapper(serper_api_key=serper_api_key)
-search_tool = Tool(
-    name="Search",
-    func=search.run,
-    description="useful for when you need to answer questions about current events; need to gather information about the user inputs. Attend and search main key words and phrases"
-)
 
 # Define the diagnostician agent
 diagnostician = Agent(
