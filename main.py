@@ -315,7 +315,7 @@ if reminders:
 
 # Mental Health Support
 st.markdown('<h2>Mental Health Support</h2>', unsafe_allow_html=True)
-st.write("Please answer the following questions on a scale of 0-5 (0: Not at all, 5: Nearly every day)")
+st.write("Please answer the following questions on a scale of 0-5 (0=Not at all & 5=Nearly every day)")
 q1 = st.slider("Interest or pleasure in doing things", 0, 5, 0)
 q2 = st.slider("Feelings of despair, depression, or hopelessness", 0, 5, 0)
 q3 = st.slider("Trouble falling or staying asleep, or sleeping too much", 0, 5, 0)
