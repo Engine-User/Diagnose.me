@@ -1,5 +1,5 @@
 streamlit
-crewai==0.16.4
+crewai
 python-dotenv
 langchain
 langchain-community
